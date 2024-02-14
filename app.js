@@ -5,37 +5,21 @@ const port = 3001;
 const bodyParser = require('body-parser');
 
 var DB = require("./models/index");
+const userAuth = require("./middleware/userAuth");
 
 DB.sequelize.sync({ alter: true }).then(() => {
     console.log("Table re-synced");
 });
 
-var usercontroller = require("./controllers/usercontrollers");
-
-const User = require("./models/user");
-
 const app = express();
 
-app.use(express.urlencoded());
+app.use(express.urlencoded({ extended: false }));
 
+app.all('/private/*', userAuth)
 
-// app.get('/', function (req, res) {
-//     res.send("hello world");
-// })
+app.use('/private', require('./routes/private'));
 
-app.post('/register', usercontroller.register);
-
-app.post('/login', usercontroller.login);
-
-app.post('/addUser', usercontroller.addUser);
-
-app.get('/getUsers', usercontroller.getUsers);
-
-app.get('/getUser/:id', usercontroller.getUser);
-
-app.delete('/deletingUser/:id', usercontroller.deletingUser);
-
-app.patch('/updateUser/:id', usercontroller.updateUser);
+app.use('/public', require('./routes/public'));
 
 app.listen(port, (err) => {
     if (err) {
