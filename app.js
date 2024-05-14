@@ -4,8 +4,13 @@ const port = 3001;
 
 const bodyParser = require('body-parser');
 
-var DB = require("./models/index");
-const userAuth = require("./middleware/userAuth");
+const cors = require('cors');
+
+var DB = require("./src/models/index");
+
+const userAuth = require("./src/middleware/userAuth");
+
+const i18n = require("./src/helper/i18n");
 
 DB.sequelize.sync({ alter: true }).then(() => {
     console.log("Table re-synced");
@@ -14,12 +19,21 @@ DB.sequelize.sync({ alter: true }).then(() => {
 const app = express();
 
 app.use(express.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }))
+
+app.use(cors())
+app.use(i18n.init);
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
 
 app.all('/private/*', userAuth)
 
-app.use('/private', require('./routes/private'));
+app.use('/private', require('./src/routes/private'));
 
-app.use('/public', require('./routes/public'));
+app.use('/public', require('./src/routes/public'));
 
 app.listen(port, (err) => {
     if (err) {
